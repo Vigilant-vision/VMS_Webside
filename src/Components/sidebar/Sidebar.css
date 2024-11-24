@@ -1,0 +1,65 @@
+
+  .sidebar {
+    width: 200px;
+    height: calc(100vh - 50px); 
+    background-color: #121111;
+    color: white;
+    padding: 15px;
+    box-sizing: border-box;
+    position: fixed; 
+    top: 50px; 
+    left: 0;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .sidebar li {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .sidebar li:hover {
+    background-color: #444;
+    width: 170px;
+    border-radius: 10px;
+  }
+  
+  .sidebar-icon {
+    width: 24px; /* Adjust as needed */
+    height: 24px; /* Adjust as needed */
+    margin-right: 10px; /* Space between icon and text */
+  }
+  
+  .logout-button {
+    position: absolute;
+    bottom: 20px;
+    width: calc(100% - 30px);
+    /* margin: 0 15px; */
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .map-link {
+    text-decoration: none;
+    color: inherit; /* This ensures that the link color stays the same as surrounding text */
+  }
+  
+  .map-link:hover {
+    text-decoration: none; /* Prevent underline on hover as well */
+  }
+  
+  .ip-item{
+    margin-left: 60px;
+  }

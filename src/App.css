@@ -1,0 +1,26 @@
+.body-l {
+    font-size: 12px;
+    line-height: 19px;
+    font-family: Public Sans;
+    font-weight: 700;
+
+  }
+  .head-1 {
+    font-size: 20px;
+    line-height: 19px;
+    font-family: Public Sans;
+    font-weight: 700;
+
+  }
+  .head-2 {
+    font-family: Public Sans;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 19.8px;
+  }
+  .head-3 {
+    font-size: 15px;
+    line-height: 19px;
+    font-weight: 500;
+    font-family: Public Sans;
+  }

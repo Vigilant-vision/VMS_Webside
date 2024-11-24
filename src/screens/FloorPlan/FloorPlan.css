@@ -1,0 +1,16 @@
+    .floorplan {
+        height: 654px  !important;
+    } 
+
+    #map {
+        height: 100vh;
+        width: 100%;
+      }
+      
+      svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none; /* Prevent mouse events from blocking interactions with the map */
+      }
+      
