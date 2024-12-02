@@ -1,29 +1,41 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Mainlayout from "../../Components/Layout/Mainlayout";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import Person from '../../images/person.svg';
+import { useSelector } from "react-redux";
+import axios from 'axios';
 
 const Home = () => {
   const [currentPosition, setCurrentPosition] = useState(null);
+  const mapRef = useRef(null); // Reference to the map instance
+  const token = useSelector((state) => state.token);
 
-  // Fetch the latest location data from the server every 5 seconds
+  // Fetch the latest location data from the watch every 5 seconds
   useEffect(() => {
     const fetchLocation = async () => {
       try {
-        const response = await fetch('https://a60f-2401-4900-5c9f-a072-6d78-91c2-818c-a8b7.ngrok-free.app/retrieve-location', {
-          method: 'POST',  // Since the server expects POST
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({})  // Empty body to trigger location fetch
-        });
-console.log(response)
-        if (response.ok) {
-          const data = await response.json();
-          if (data.location) {
-            const { latitude, longitude } = data.location;
-            setCurrentPosition({ lat: latitude, lng: longitude });
-          }
+        const payload = {
+          Token: token,
+          OperationType: 'GetMyTracker',
+          InformationType: 'Product',
+          LanguageType: '2B72ABC6-19D7-4653-AAEE-0BE542026D46',
+          Arguments: JSON.stringify({ TrackerType: "0" }),
+        };
+
+        const headers = {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Origin: 'http://www.overseetracking.com/',
+        };
+
+        const response = await axios.post(
+          'http://api.overseetracking.com/WebProcessorApi.ashx',
+          new URLSearchParams(payload),
+          { headers }
+        );
+
+        if (response?.data?.Data?.Position?.length > 0) {
+          const { Latitude, Longitude } = response.data.Data.Position[0];
+          setCurrentPosition({ lat: Latitude, lng: Longitude });
         } else {
           console.log("No location data available");
         }
@@ -32,15 +44,19 @@ console.log(response)
       }
     };
 
-    // Set interval to fetch location every 5 seconds
-    const interval = setInterval(fetchLocation, 5000);
-    return () => clearInterval(interval); // Clear interval on component unmount
+    // Fetch location initially and every 5 seconds
+    fetchLocation();
+    const interval = setInterval(fetchLocation, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const mapStyles = {
     height: "100%",
-    width: "200%",
+    width: "100%",
   };
+
+  // Map's default center if no data is available yet
+  const defaultCenter = { lat: 20.28077, lng: 85.82090 };
 
   return (
     <Mainlayout>
@@ -48,14 +64,14 @@ console.log(response)
         <LoadScript googleMapsApiKey="AIzaSyDS3NVLiU1X1JKmED-ecqI97CYMda6P6jA">
           <GoogleMap
             mapContainerStyle={mapStyles}
-            zoom={18}
-            center={currentPosition || { lat: 21.09760, lng: 85.07240 }} // Default center if location is unavailable
+            zoom={12}
+            center={defaultCenter} // Keep map's center static
             mapTypeId="satellite"
+            onLoad={(map) => (mapRef.current = map)} // Reference the map instance
           >
-
             {currentPosition && (
               <Marker
-                position={currentPosition}
+                position={currentPosition} // Only update the marker's position
                 icon={Person}
               />
             )}

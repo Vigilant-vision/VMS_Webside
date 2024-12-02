@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Mainlayout from "../../Components/Layout/Mainlayout";
 import Video from '../../assets/videos/video.mp4';
+import { useSelector } from "react-redux";
 
 const alertData = [
   {
@@ -35,6 +36,13 @@ const coordinates = [
 const Home = () => {
   const [currentPosition, setCurrentPosition] = useState(null);
   const [alerts, setAlerts] = useState(alertData);
+
+  const token = useSelector((state) => state.token);
+  // Adjust for combined reducers
+
+  useEffect(() => {
+    console.log("Token:", token);
+  }, [token]);
 
   useEffect(() => {
     let index = 0;

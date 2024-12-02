@@ -1,7 +1,9 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { FiCamera, FiLock, FiMail, FiEyeOff, FiEye, FiLoader, FiChevronRight, FiUser } from 'react-icons/fi'
+import axios from 'axios';
+import { useDispatch } from "react-redux";
+import { setToken } from "../../redux/Action/AuthActions";
+import { useNavigate } from 'react-router';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
@@ -9,6 +11,10 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formFilled, setFormFilled] = useState(false)
+
+  const navigate = useNavigate(); // Initialize the navigate hook
+  const dispatch = useDispatch(); // Initialize the Redux dispatch
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -22,15 +28,40 @@ export default function LoginScreen() {
     setFormFilled(email !== '' && password !== '')
   }, [email, password])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    // Simulating API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setIsLoading(false)
-    console.log('Login attempted with:', email, password)
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
 
+    const apiUrl = 'http://api.overseetracking.com/WebProcessorApi.ashx';
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Origin: 'http://www.overseetracking.com/',
+    };
+
+    const body = new URLSearchParams({
+      Token: '',
+      OperationType: 'SignIn',
+      InformationType: 'User',
+      LanguageType: '2B72ABC6-19D7-4653-AAEE-0BE542026D46',
+      Arguments: JSON.stringify({ UserName: email, Password: password }),
+    }).toString();
+
+    try {
+      const response = await axios.post(apiUrl, body, { headers });
+      setIsLoading(false);
+
+      if (response.data?.Token) {
+        console.log('Token:', response.data.Token);
+        dispatch(setToken(response.data.Token));
+        navigate('/');
+      } else {
+        console.error('Login failed:', response.data);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('An error occurred:', error.response?.data || error.message);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-blue-900 flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="absolute inset-0 z-0">
@@ -137,31 +168,24 @@ export default function LoginScreen() {
                 disabled={isLoading || !formFilled}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
               >
-                <span className="absolute inset-y-0 left-0 flex items-center justify-center w-16 bg-blue-500 transition-all duration-300 ease-in-out group-hover:w-full group-focus:w-full">
-                  {isLoading ? (
-                    <FiLoader className="h-5 w-5 text-white animate-spin" aria-hidden="true" />
-                  ) : (
-                    <FiLock className="h-5 w-5 text-white" aria-hidden="true" />
-                  )}
-                </span>
-                <span className="relative group-hover:text-white transition-colors duration-300">
-                  {isLoading ? 'Signing in...' : 'Sign in'}
-                </span>
+                {isLoading ? (
+                  <>
+                    <FiLoader className="absolute left-0 inset-y-0 flex items-center pl-3 h-5 w-5 text-blue-300 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                      <FiUser className="h-5 w-5 text-blue-300 group-hover:text-blue-100 transition-colors duration-300" />
+                    </span>
+                    Sign in
+                  </>
+                )}
               </button>
             </div>
           </form>
-          <div className="mt-6 text-center">
-            <p className="text-sm text-blue-300">
-              Don't have an account?{' '}
-              <a href="#" className="font-medium text-blue-400 hover:text-blue-300 transition-colors duration-300 inline-flex items-center">
-                Sign up here
-                <FiUser className="ml-1 h-4 w-4" />
-              </a>
-            </p>
-          </div>
         </div>
       </div>
     </div>
   )
 }
-
