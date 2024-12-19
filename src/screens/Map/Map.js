@@ -1,40 +1,32 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import Mainlayout from "../../Components/Layout/Mainlayout";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
-import Person from '../../images/person.svg';
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useSelector } from "react-redux";
-import axios from 'axios';
+import axios from "axios";
+import L from "leaflet"; // Leaflet library for map
+
+// Custom Person icon for marker
+import Person from '../../images/person.svg';
 
 const Home = () => {
   const [currentPosition, setCurrentPosition] = useState(null);
-  const mapRef = useRef(null); // Reference to the map instance
   const token = useSelector((state) => state.token);
 
-  // Fetch the latest location data from the watch every 5 seconds
+  // Fetch the latest location data from the API every 30 seconds
   useEffect(() => {
     const fetchLocation = async () => {
       try {
-        const payload = {
-          Token: token,
-          OperationType: 'GetMyTracker',
-          InformationType: 'Product',
-          LanguageType: '2B72ABC6-19D7-4653-AAEE-0BE542026D46',
-          Arguments: JSON.stringify({ TrackerType: "0" }),
-        };
-
-        const headers = {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Origin: 'http://www.overseetracking.com/',
-        };
-
-        const response = await axios.post(
-          'http://api.overseetracking.com/WebProcessorApi.ashx',
-          new URLSearchParams(payload),
-          { headers }
+        const response = await axios.get(
+          "https://vigilantvisionsystem.com/ec2/api/v1/oversees/track-data",
+          {
+            params: {
+              token: token, // Pass the token as a query parameter
+            },
+          }
         );
 
-        if (response?.data?.Data?.Position?.length > 0) {
-          const { Latitude, Longitude } = response.data.Data.Position[0];
+        if (response?.data?.success && response?.data?.data?.Data?.Position?.length > 0) {
+          const { Latitude, Longitude } = response.data.data.Data.Position[0];
           setCurrentPosition({ lat: Latitude, lng: Longitude });
         } else {
           console.log("No location data available");
@@ -44,39 +36,43 @@ const Home = () => {
       }
     };
 
-    // Fetch location initially and every 5 seconds
+    // Fetch location initially and every 30 seconds
     fetchLocation();
     const interval = setInterval(fetchLocation, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [token]);
 
-  const mapStyles = {
-    height: "100%",
-    width: "100%",
-  };
-
-  // Map's default center if no data is available yet
+  // Default map center if no location is available
   const defaultCenter = { lat: 20.28077, lng: 85.82090 };
 
   return (
     <Mainlayout>
       <div className="main" style={{ height: "83vh" }}>
-        <LoadScript googleMapsApiKey="AIzaSyDS3NVLiU1X1JKmED-ecqI97CYMda6P6jA">
-          <GoogleMap
-            mapContainerStyle={mapStyles}
-            zoom={12}
-            center={defaultCenter} // Keep map's center static
-            mapTypeId="satellite"
-            onLoad={(map) => (mapRef.current = map)} // Reference the map instance
-          >
-            {currentPosition && (
-              <Marker
-                position={currentPosition} // Only update the marker's position
-                icon={Person}
-              />
-            )}
-          </GoogleMap>
-        </LoadScript>
+        <MapContainer
+          center={currentPosition || defaultCenter} // Map center based on current position or default
+          zoom={12}
+          style={{ height: "100%", width: "100%" }}
+        >
+          {/* TileLayer for background map */}
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          {/* Add Marker for current position */}
+          {currentPosition && (
+            <Marker
+              position={currentPosition}
+              icon={new L.Icon({
+                iconUrl: Person, // Custom icon for the marker
+                iconSize: [25, 25],
+                iconAnchor: [12, 12],
+                popupAnchor: [0, -12],
+              })}
+            >
+              <Popup>Current Location</Popup>
+            </Marker>
+          )}
+        </MapContainer>
       </div>
     </Mainlayout>
   );

@@ -31,28 +31,23 @@ export default function LoginScreen() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
-    const apiUrl = 'http://api.overseetracking.com/WebProcessorApi.ashx';
-    const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Origin: 'http://www.overseetracking.com/',
-    };
-
-    const body = new URLSearchParams({
-      Token: '',
-      OperationType: 'SignIn',
-      InformationType: 'User',
-      LanguageType: '2B72ABC6-19D7-4653-AAEE-0BE542026D46',
-      Arguments: JSON.stringify({ UserName: email, Password: password }),
-    }).toString();
-
+  
+    const apiUrl = 'https://vigilantvisionsystem.com/ec2/api/v1/oversees/login';
+    
+    // Send the email and password as query parameters
+    const params = new URLSearchParams({
+      email: email,
+      password: password
+    });
+  
     try {
-      const response = await axios.post(apiUrl, body, { headers });
+      const response = await axios.get(apiUrl, { params });
+  
       setIsLoading(false);
-
-      if (response.data?.Token) {
-        console.log('Token:', response.data.Token);
-        dispatch(setToken(response.data.Token));
+  
+      if (response.data?.success && response.data?.data) {
+        console.log('Token:', response.data.data);
+        dispatch(setToken(response.data.data));
         navigate('/');
       } else {
         console.error('Login failed:', response.data);
@@ -62,6 +57,7 @@ export default function LoginScreen() {
       console.error('An error occurred:', error.response?.data || error.message);
     }
   };
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-blue-900 flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="absolute inset-0 z-0">
